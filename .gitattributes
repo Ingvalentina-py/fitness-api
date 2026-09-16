@@ -1,0 +1,3 @@
+# Guarda todos los archivos de texto con saltos de línea LF (estilo Linux),
+# para que el código sea idéntico en Windows, Mac y en los servidores de Vercel.
+* text=auto eol=lf
