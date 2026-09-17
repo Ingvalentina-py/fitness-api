@@ -1,4 +1,7 @@
 import { z } from 'zod'
+import { isValidTimeZone } from '../utils/timezone.js'
+
+export const timezoneSchema = z.string().refine(isValidTimeZone, 'Zona horaria inválida')
 
 export const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Id inválido')
 
