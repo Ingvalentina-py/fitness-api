@@ -131,6 +131,15 @@ Decisiones importantes:
 - **Copias en las sesiones.** Cada ejercicio realizado guarda una copia de su nombre y músculos: editar el catálogo no cambia el historial.
 - **`weightKg` automático.** Cada serie guarda su peso y unidad (`kg`/`lb`), y el modelo calcula `weightKg` para que las estadísticas comparen siempre en kg.
 - **Índices creados por script.** `autoIndex` está desactivado (en Vercel se ejecutaría en cada arranque en frío); `npm run seed` los sincroniza.
+- **Búsqueda sin tildes.** Cada ejercicio guarda `searchName` (minúsculas y sin tildes), así "biceps" encuentra "Bíceps".
+- **Orden.** Grupos y rutinas tienen un campo `order`; los ejercicios de una rutina usan su posición en la lista.
+- **Archivar en vez de borrar.** Rutinas y ejercicios propios se archivan: el historial que los usa sigue funcionando. Una rutina archivada sale del plan semanal.
+
+## Rutinas y plan semanal
+
+- **Grupos → rutinas → ejercicios.** Al eliminar un grupo con rutinas hay que elegir a qué grupo moverlas (`?moveTo=`), dentro de una transacción.
+- **División sugerida.** Cada cuenta nueva recibe 4 rutinas de ejemplo (Inferior A – Fuerza, Superior A – Fuerza, Inferior B – Hipertrofia, Superior B – Hipertrofia) y un plan semanal. Quien aún no tenga rutinas puede cargarla con `POST /routines/suggested-split`. Las plantillas están en `src/constants/suggestedSplit.js`.
+- **Aviso de piernas.** `GET /weekly-plan` devuelve `warnings` cuando un día tiene una rutina de "pierna intensa" (al menos la mitad de sus ejercicios trabajan el tren inferior) justo después de un día con otra actividad exigente para las piernas: una rutina intensa o un tipo de actividad con `isLegIntensive` (por defecto, Bicicleta).
 
 ## Autenticación
 
@@ -151,14 +160,31 @@ Todas las rutas empiezan por `/api/v1`. 🔒 = requiere sesión.
 | ------ | -------------------- | -------------------------------------------------------------------- | --------------------------------------------- |
 | GET    | `/health`            | —                                                                    | Estado de la API y la base de datos (`200` / `503`) |
 | GET    | `/meta`              | —                                                                    | Valores permitidos con sus textos en español  |
-| POST   | `/auth/register`     | `name`, `email`, `password` (mín. 8), `timezone` (opcional)          | Crea la cuenta y sus 4 grupos iniciales, e inicia sesión (`201`) |
+| POST   | `/auth/register`     | `name`, `email`, `password` (mín. 8), `timezone` (opcional)          | Crea la cuenta, sus 4 grupos y la división sugerida, e inicia sesión (`201`) |
 | POST   | `/auth/login`        | `email`, `password`                                                  | Inicia sesión (pone la cookie)                |
 | POST   | `/auth/logout`       | —                                                                    | Cierra sesión (borra la cookie, `204`)        |
 | GET    | `/users/me` 🔒        | —                                                                    | Persona con sesión                            |
 | PATCH  | `/users/me` 🔒        | `name`, `preferences.{weightUnit, weekStartsOn, timezone, voicePhrases}` | Edita nombre y/o preferencias             |
 | PATCH  | `/users/me/password` 🔒 | `currentPassword`, `newPassword`                                  | Cambia la contraseña y cierra las otras sesiones |
-| GET    | `/exercises` 🔒       | `muscle`, `equipment`, `pattern`, `page` (1), `limit` (20, máx. 100) | Catálogo global + propio, paginado por nombre |
+| GET    | `/exercises` 🔒       | `search`, `scope` (`all`/`mine`), `muscle`, `equipment`, `pattern`, `page`, `limit` | Catálogo global + propio, paginado por nombre |
 | GET    | `/exercises/:id` 🔒   | —                                                                    | Un ejercicio                                  |
+| POST   | `/exercises` 🔒       | `name`, `equipment`, `movementPattern`, `primaryMuscles`, `secondaryMuscles`, `isUnilateral` | Crea un ejercicio propio (`201`)  |
+| PATCH  | `/exercises/:id` 🔒   | Cualquiera de los campos anteriores                                  | Edita un ejercicio propio (globales: `403`)   |
+| DELETE | `/exercises/:id` 🔒   | —                                                                    | Archiva un ejercicio propio (`204`)           |
+| GET    | `/routine-groups` 🔒  | —                                                                    | Grupos en orden, con `routineCount`           |
+| POST   | `/routine-groups` 🔒  | `name`, `color` (`#RRGGBB`), `icon`                                  | Crea un grupo al final (`201`)                |
+| PATCH  | `/routine-groups/:id` 🔒 | `name`, `color`, `icon`                                           | Edita un grupo                                |
+| PUT    | `/routine-groups/order` 🔒 | `groupIds` (todos, en el nuevo orden)                           | Reordena los grupos (`204`)                   |
+| DELETE | `/routine-groups/:id` 🔒 | `?moveTo=<id>` si tiene rutinas                                   | Elimina el grupo (`204`; `409 GROUP_NOT_EMPTY`) |
+| GET    | `/routines` 🔒        | `archived` (`false` por defecto)                                     | Rutinas activas o archivadas, en orden        |
+| GET    | `/routines/:id` 🔒    | —                                                                    | Rutina con los datos de cada ejercicio        |
+| POST   | `/routines` 🔒        | `group`, `name`, `goal`, `exercises[]` (`exercise`, `targetSets`, `targetRepsMin`, `targetRepsMax`, `restSeconds`, `notes`) | Crea una rutina (`201`) |
+| PATCH  | `/routines/:id` 🔒    | Cualquiera de los campos anteriores y `isArchived`                   | Edita, mueve de grupo, archiva o restaura     |
+| POST   | `/routines/:id/duplicate` 🔒 | —                                                             | Crea una copia "(copia)" (`201`)              |
+| PUT    | `/routines/order` 🔒  | `groupId`, `routineIds` (las activas del grupo, en orden)            | Reordena las rutinas de un grupo (`204`)      |
+| POST   | `/routines/suggested-split` 🔒 | —                                                           | Carga la división sugerida si no hay rutinas (`201`; si no, `409`) |
+| GET    | `/weekly-plan` 🔒     | —                                                                    | 7 días con lo planeado y los avisos de piernas |
+| PUT    | `/weekly-plan` 🔒     | `days[]` (`dayOfWeek`, `items[]` con `kind` `routine` o `activityType`) | Reemplaza el plan semanal                   |
 | GET    | `/activity-types` 🔒  | —                                                                    | Tipos de actividad globales + propios         |
 | GET    | `/phrases` 🔒         | `context` (`general`, `streak`, `record`, `sessionCompleted`)        | Frases activas globales + propias             |
 
@@ -183,8 +209,10 @@ Todas las rutas empiezan por `/api/v1`. 🔒 = requiere sesión.
 | `INVALID_VALUE`        | 400  | Un valor no se puede convertir (ej.: un id)   |
 | `UNAUTHENTICATED`      | 401  | No hay sesión, venció o ya no es válida       |
 | `INVALID_CREDENTIALS`  | 401  | Correo o contraseña incorrectos               |
+| `FORBIDDEN`            | 403  | Sin permiso (ej.: editar un ejercicio global) |
 | `NOT_FOUND`            | 404  | La ruta o el recurso no existe                |
 | `CONFLICT`             | 409  | Ya existe (ej.: correo registrado)            |
+| `GROUP_NOT_EMPTY`      | 409  | Se intenta eliminar un grupo con rutinas sin `moveTo` |
 | `DUPLICATE`            | 409  | Se viola un índice único                      |
 | `TOO_MANY_ATTEMPTS`    | 429  | Demasiados intentos fallidos de contraseña    |
 | `PAYLOAD_TOO_LARGE`    | 413  | El cuerpo de la petición es demasiado grande  |
