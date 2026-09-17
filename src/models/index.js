@@ -1,0 +1,12 @@
+// Punto único para importar los modelos
+export { User } from './user.model.js'
+export { Exercise } from './exercise.model.js'
+export { RoutineGroup } from './routineGroup.model.js'
+export { Routine } from './routine.model.js'
+export { WeeklyPlan } from './weeklyPlan.model.js'
+export { ActivityType } from './activityType.model.js'
+export { Activity } from './activity.model.js'
+export { GymSession } from './gymSession.model.js'
+export { GeneralActivity } from './generalActivity.model.js'
+export { PersonalRecord } from './personalRecord.model.js'
+export { Phrase } from './phrase.model.js'

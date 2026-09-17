@@ -22,6 +22,9 @@ export async function connectToDatabase() {
   // Si dos peticiones llegan a la vez, ambas esperan la misma promesa
   connectionPromise ??= mongoose.connect(env.MONGODB_URI, {
     dbName: env.MONGODB_DB_NAME,
+    // Los índices no se crean al conectar (en Vercel pasaría en cada arranque en frío):
+    // se crean una vez con `npm run seed`.
+    autoIndex: false,
     // Falla en 10 s si no alcanza el clúster (por ejemplo, IP no autorizada en Atlas)
     serverSelectionTimeoutMS: 10_000,
   })
