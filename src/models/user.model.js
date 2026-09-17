@@ -32,6 +32,8 @@ const userSchema = new mongoose.Schema(
     // Nunca se guarda la contraseña, solo su hash (bcrypt, Fase 2).
     // select: false → las consultas no lo traen a menos que se pida explícitamente.
     passwordHash: { type: String, required: true, select: false },
+    // Versión de las sesiones: al cambiar la contraseña sube y los tokens anteriores dejan de valer
+    tokenVersion: { type: Number, default: 0, select: false },
     role: { type: String, enum: USER_ROLES, default: 'user' },
     plan: { type: String, enum: USER_PLANS, default: 'free' },
     preferences: { type: preferencesSchema, default: () => ({}) },
@@ -40,9 +42,10 @@ const userSchema = new mongoose.Schema(
     ...baseSchemaOptions,
     toJSON: {
       ...baseSchemaOptions.toJSON,
-      // Doble seguro: aunque el documento traiga el hash, nunca sale en una respuesta
+      // Doble seguro: aunque el documento traiga estos campos, nunca salen en una respuesta
       transform: (_doc, ret) => {
         delete ret.passwordHash
+        delete ret.tokenVersion
         return ret
       },
     },
