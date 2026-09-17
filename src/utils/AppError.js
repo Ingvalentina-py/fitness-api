@@ -21,6 +21,10 @@ export class AppError extends Error {
     return new AppError(message, { status: 401, code })
   }
 
+  static forbidden(message = 'No tienes permiso para hacer esto') {
+    return new AppError(message, { status: 403, code: 'FORBIDDEN' })
+  }
+
   static notFound(message = 'No se encontró lo que buscas') {
     return new AppError(message, { status: 404, code: 'NOT_FOUND' })
   }

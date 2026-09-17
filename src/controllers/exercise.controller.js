@@ -15,3 +15,28 @@ export async function getExercise(req, res) {
 
   res.json({ data: exercise })
 }
+
+// POST /api/v1/exercises
+export async function createExercise(req, res) {
+  const exercise = await exerciseService.createExercise(req.user._id, req.validated.body)
+
+  res.status(201).json({ data: exercise })
+}
+
+// PATCH /api/v1/exercises/:id
+export async function updateExercise(req, res) {
+  const exercise = await exerciseService.updateExercise(
+    req.user._id,
+    req.validated.params.id,
+    req.validated.body,
+  )
+
+  res.json({ data: exercise })
+}
+
+// DELETE /api/v1/exercises/:id → archiva (no borra)
+export async function archiveExercise(req, res) {
+  await exerciseService.archiveExercise(req.user._id, req.validated.params.id)
+
+  res.status(204).end()
+}
