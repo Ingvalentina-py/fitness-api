@@ -12,8 +12,12 @@ export async function listExercises(
   { search, scope, muscle, equipment, pattern, page, limit },
 ) {
   const filter = scope === 'mine' ? { owner: userId, isArchived: false } : visibleTo(userId)
-  // "thrust" encuentra "Hip thrust"; "biceps" encuentra "Bíceps"
-  if (search) filter.searchName = { $regex: escapeRegex(normalizeForSearch(search)) }
+  // Cada palabra debe aparecer en el nombre, en cualquier orden y sin importar tildes:
+  // "abduccion polea" encuentra "Abducción de cadera en polea"
+  const words = search ? normalizeForSearch(search).split(' ').filter(Boolean) : []
+  if (words.length > 0) {
+    filter.$and = words.map((word) => ({ searchName: { $regex: escapeRegex(word) } }))
+  }
   if (muscle) filter.primaryMuscles = muscle
   if (equipment) filter.equipment = equipment
   if (pattern) filter.movementPattern = pattern

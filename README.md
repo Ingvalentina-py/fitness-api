@@ -131,7 +131,7 @@ Decisiones importantes:
 - **Copias en las sesiones.** Cada ejercicio realizado guarda una copia de su nombre y músculos: editar el catálogo no cambia el historial.
 - **`weightKg` automático.** Cada serie guarda su peso y unidad (`kg`/`lb`), y el modelo calcula `weightKg` para que las estadísticas comparen siempre en kg.
 - **Índices creados por script.** `autoIndex` está desactivado (en Vercel se ejecutaría en cada arranque en frío); `npm run seed` los sincroniza.
-- **Búsqueda sin tildes.** Cada ejercicio guarda `searchName` (minúsculas y sin tildes), así "biceps" encuentra "Bíceps".
+- **Búsqueda sin tildes y por palabras.** Cada ejercicio guarda `searchName` (minúsculas y sin tildes). Cada palabra buscada debe aparecer en el nombre, en cualquier orden: "biceps" encuentra "Bíceps" y "abduccion polea" encuentra "Abducción de cadera en polea".
 - **Orden.** Grupos y rutinas tienen un campo `order`; los ejercicios de una rutina usan su posición en la lista.
 - **Archivar en vez de borrar.** Rutinas y ejercicios propios se archivan: el historial que los usa sigue funcionando. Una rutina archivada sale del plan semanal.
 
