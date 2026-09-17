@@ -3,6 +3,7 @@ import { connectToDatabase } from '../src/config/database.js'
 import { env } from '../src/config/env.js'
 import * as models from '../src/models/index.js'
 import { SPANISH_COLLATION } from '../src/models/shared.js'
+import { normalizeForSearch } from '../src/utils/text.js'
 import { activityTypes } from './data/activityTypes.js'
 import { exercises } from './data/exercises.js'
 import { phrases } from './data/phrases.js'
@@ -47,7 +48,12 @@ try {
   console.log(`Conectado a la base de datos "${env.MONGODB_DB_NAME}"`)
 
   await syncIndexes()
-  await upsertGlobal(models.Exercise, exercises, {
+  // bulkWrite no ejecuta los hooks del modelo: el nombre para buscar se calcula aquí
+  const exercisesWithSearchName = exercises.map((exercise) => ({
+    ...exercise,
+    searchName: normalizeForSearch(exercise.name),
+  }))
+  await upsertGlobal(models.Exercise, exercisesWithSearchName, {
     key: 'name',
     label: 'Ejercicios',
     collation: SPANISH_COLLATION,

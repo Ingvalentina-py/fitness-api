@@ -10,6 +10,8 @@ const activityTypeSchema = new mongoose.Schema(
     color: { type: String, required: true, match: HEX_COLOR_REGEX },
     icon: { type: String, required: true, trim: true, maxlength: 40 },
     usesDistance: { type: Boolean, default: false },
+    // Exige mucho a las piernas: activa el aviso si al día siguiente toca pierna intensa
+    isLegIntensive: { type: Boolean, default: false },
     isArchived: { type: Boolean, default: false },
   },
   { ...baseSchemaOptions, collection: 'activityTypes' },
