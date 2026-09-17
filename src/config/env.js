@@ -1,3 +1,4 @@
+import './zod.js'
 import { z } from 'zod'
 
 // Convierte "a, b,c" en ['a', 'b', 'c']
