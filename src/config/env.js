@@ -23,6 +23,9 @@ const envSchema = z.object({
       'MONGODB_URI todavía tiene marcadores como <db_password>: reemplázalos por tus datos',
     ),
   MONGODB_DB_NAME: z.string().min(1).default('fitness'),
+  JWT_SECRET: z
+    .string({ error: 'Falta JWT_SECRET: revisa .env.example para generar una' })
+    .min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
   // Opcional: servidores DNS para resolver direcciones mongodb+srv:// (ver database.js)
   DNS_SERVERS: z
     .string()

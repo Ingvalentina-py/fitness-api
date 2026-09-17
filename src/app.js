@@ -1,6 +1,7 @@
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
-import cors from 'cors'
 import { env } from './config/env.js'
 import { errorHandler } from './middlewares/errorHandler.js'
 import { notFound } from './middlewares/notFound.js'
@@ -13,6 +14,7 @@ const app = express()
 app.use(helmet()) // cabeceras HTTP de seguridad
 app.use(cors({ origin: env.CORS_ORIGIN })) // solo el frontend autorizado puede llamar a la API
 app.use(express.json()) // convierte el cuerpo JSON de las peticiones en req.body
+app.use(cookieParser()) // lee las cookies (la sesión) en req.cookies
 
 app.use('/api/v1', apiV1Router)
 

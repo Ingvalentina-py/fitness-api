@@ -17,7 +17,19 @@ export class AppError extends Error {
     })
   }
 
+  static unauthorized(message = 'Necesitas iniciar sesión', code = 'UNAUTHENTICATED') {
+    return new AppError(message, { status: 401, code })
+  }
+
   static notFound(message = 'No se encontró lo que buscas') {
     return new AppError(message, { status: 404, code: 'NOT_FOUND' })
+  }
+
+  static conflict(message, details) {
+    return new AppError(message, { status: 409, code: 'CONFLICT', details })
+  }
+
+  static tooManyRequests(message) {
+    return new AppError(message, { status: 429, code: 'TOO_MANY_ATTEMPTS' })
   }
 }
