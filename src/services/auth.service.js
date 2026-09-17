@@ -5,26 +5,28 @@ import { AppError } from '../utils/AppError.js'
 import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from '../utils/password.js'
 import { signSessionToken, verifySessionToken } from '../utils/sessionToken.js'
 import * as loginAttemptService from './loginAttempt.service.js'
+import * as suggestedSplitService from './suggestedSplit.service.js'
 
 const EXPIRED_SESSION_MESSAGE = 'Tu sesión expiró. Inicia sesión de nuevo.'
 
 export async function register({ name, email, password, timezone }) {
   const passwordHash = await hashPassword(password)
+  let user
 
   try {
     // Transacción: la cuenta y sus grupos iniciales se crean juntos, o no se crea nada
-    return await mongoose.connection.transaction(async (session) => {
-      const [user] = await User.create(
+    user = await mongoose.connection.transaction(async (session) => {
+      const [newUser] = await User.create(
         [{ name, email, passwordHash, ...(timezone && { preferences: { timezone } }) }],
         { session },
       )
 
       await RoutineGroup.insertMany(
-        DEFAULT_ROUTINE_GROUPS.map((group, index) => ({ ...group, user: user._id, order: index })),
+        DEFAULT_ROUTINE_GROUPS.map((group, index) => ({ ...group, user: newUser._id, order: index })),
         { session },
       )
 
-      return user
+      return newUser
     })
   } catch (error) {
     if (error.code === 11000 && error.keyPattern?.email) {
@@ -34,6 +36,16 @@ export async function register({ name, email, password, timezone }) {
     }
     throw error
   }
+
+  // Rutinas y plan semanal de ejemplo. Si algo falla aquí, la cuenta ya existe y
+  // la persona puede cargar el ejemplo luego desde Rutinas.
+  try {
+    await suggestedSplitService.createSuggestedSplit(user._id)
+  } catch (error) {
+    console.error('No se pudo cargar la división sugerida →', error.message)
+  }
+
+  return user
 }
 
 export async function login({ email, password }) {

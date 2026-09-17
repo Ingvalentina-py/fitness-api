@@ -7,7 +7,10 @@ import exerciseRoutes from './exercise.routes.js'
 import healthRoutes from './health.routes.js'
 import metaRoutes from './meta.routes.js'
 import phraseRoutes from './phrase.routes.js'
+import routineRoutes from './routine.routes.js'
+import routineGroupRoutes from './routineGroup.routes.js'
 import userRoutes from './user.routes.js'
+import weeklyPlanRoutes from './weeklyPlan.routes.js'
 
 // Router de la versión 1 de la API. Cada recurso monta aquí sus rutas.
 const router = Router()
@@ -27,5 +30,8 @@ router.use('/users', ...privateRoute, userRoutes)
 router.use('/exercises', ...privateRoute, exerciseRoutes)
 router.use('/activity-types', ...privateRoute, activityTypeRoutes)
 router.use('/phrases', ...privateRoute, phraseRoutes)
+router.use('/routine-groups', ...privateRoute, routineGroupRoutes)
+router.use('/routines', ...privateRoute, routineRoutes)
+router.use('/weekly-plan', ...privateRoute, weeklyPlanRoutes)
 
 export default router
