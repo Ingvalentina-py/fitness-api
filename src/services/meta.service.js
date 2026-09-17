@@ -1,4 +1,5 @@
 import { ACTIVITY_KINDS, INTENSITIES, WEIGHT_UNITS } from '../constants/activities.js'
+import { DAYS_OF_WEEK } from '../constants/days.js'
 import { EQUIPMENT, MOVEMENT_PATTERNS } from '../constants/exercises.js'
 import { MUSCLES, MUSCLE_REGIONS } from '../constants/muscles.js'
 import { PHRASE_CONTEXTS } from '../constants/phrases.js'
@@ -19,5 +20,6 @@ export function getMeta() {
     weightUnits: WEIGHT_UNITS,
     phraseContexts: PHRASE_CONTEXTS,
     weekStartDays: WEEK_START_DAYS,
+    daysOfWeek: DAYS_OF_WEEK,
   }
 }
