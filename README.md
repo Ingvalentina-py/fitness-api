@@ -9,6 +9,7 @@ El frontend vive en otro repositorio: **fitness-web**.
 - **Node.js 24** + **Express 5**
 - **MongoDB Atlas** con **Mongoose**
 - **Zod** para validar todo lo que entra (variables de entorno y peticiones), con mensajes en español
+- **bcryptjs** (contraseñas), **jose** (JWT) y **cookie-parser** (cookie de sesión)
 - **helmet** (cabeceras de seguridad) y **cors**
 - **Oxlint** para revisar el código
 
@@ -24,7 +25,13 @@ npm install
 cp .env.example .env   # en PowerShell: Copy-Item .env.example .env
 ```
 
-Abre `.env` y completa `MONGODB_URI` con tu cadena de conexión de Atlas. Luego crea los índices y carga el catálogo inicial (solo la primera vez, o cuando cambien los datos iniciales):
+Abre `.env` y completa:
+
+- `MONGODB_URI` con tu cadena de conexión de Atlas.
+- `JWT_SECRET` con una clave aleatoria. Genérala con:
+  `node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"`
+
+Luego crea los índices y carga el catálogo inicial (la primera vez, y cada vez que se agreguen modelos o índices):
 
 ```bash
 npm run seed
@@ -62,6 +69,7 @@ Se leen del archivo `.env` (nunca se sube a GitHub). La plantilla es `.env.examp
 | ----------------- | ----------- | ----------------------- | --------------------------------------------------------- |
 | `MONGODB_URI`     | Sí          | —                       | Cadena de conexión de MongoDB Atlas                       |
 | `MONGODB_DB_NAME` | No          | `fitness`               | Base de datos dentro del clúster                          |
+| `JWT_SECRET`      | Sí          | —                       | Clave para firmar las sesiones (mínimo 32 caracteres)     |
 | `PORT`            | No          | `3000`                  | Puerto del servidor local                                 |
 | `CORS_ORIGIN`     | No          | `http://localhost:5173` | Direcciones del frontend permitidas, separadas por comas  |
 | `NODE_ENV`        | No          | `development`           | `development`, `test` o `production`                      |
@@ -114,6 +122,7 @@ Cada petición recorre las capas **rutas → controladores → servicios → mod
 | `activities`      | Todo lo registrado en un día: `kind: "gym"` (GymSession) o `kind: "general"` (GeneralActivity) |
 | `personalRecords` | Peso máximo y mejor volumen por persona y ejercicio                          |
 | `phrases`         | Frases motivacionales por contexto (general, racha, récord, sesión terminada) |
+| `loginAttempts`   | Intentos fallidos de inicio de sesión por correo (se borran solos con un índice TTL) |
 
 Decisiones importantes:
 
@@ -123,18 +132,35 @@ Decisiones importantes:
 - **`weightKg` automático.** Cada serie guarda su peso y unidad (`kg`/`lb`), y el modelo calcula `weightKg` para que las estadísticas comparen siempre en kg.
 - **Índices creados por script.** `autoIndex` está desactivado (en Vercel se ejecutaría en cada arranque en frío); `npm run seed` los sincroniza.
 
+## Autenticación
+
+- **Sesión en una cookie `httpOnly`** (`fitness_session`) con un JWT firmado que dura **30 días**. El JavaScript del navegador no puede leerla, así que un script malicioso no puede robarla. `SameSite=Lax` evita que otros sitios la usen (CSRF) y en producción solo viaja por HTTPS.
+- **Mismo dominio.** El frontend llama a `/api/...` en su propio dominio: en desarrollo lo reenvía el proxy de Vite y en producción lo hará un rewrite de Vercel. Así la cookie funciona también en Safari.
+- **Contraseñas con bcrypt** (costo 11). Nunca se guarda la contraseña, solo su hash.
+- **`tokenVersion`.** Cada token guarda la versión de sesión del usuario. Al cambiar la contraseña la versión sube y los tokens anteriores dejan de valer en todos los dispositivos.
+- **Límite de intentos.** Tras 5 intentos fallidos con un mismo correo, se bloquea 15 minutos (`429`). Se guarda en MongoDB porque en Vercel las instancias no comparten memoria. El mismo límite protege el cambio de contraseña.
+- **Sin pistas para atacantes.** El mensaje es siempre "Correo o contraseña incorrectos", y si el correo no existe se compara igual contra un hash falso para que el tiempo de respuesta no lo delate.
+- **Sin campos extra.** Los esquemas usan `z.strictObject`: enviar `"role": "admin"` o `"plan"` responde `400`.
+- **Datos por persona.** Las rutas privadas usan `requireAuth`, que deja al usuario en `req.user`, y los servicios filtran por él.
+
 ## Endpoints
 
-Todas las rutas empiezan por `/api/v1`. Por ahora son de solo lectura y muestran el catálogo global; desde la Fase 2 incluirán los datos propios de cada persona.
+Todas las rutas empiezan por `/api/v1`. 🔒 = requiere sesión.
 
-| Método | Ruta              | Parámetros                                                         | Descripción                                   |
-| ------ | ----------------- | ------------------------------------------------------------------ | --------------------------------------------- |
-| GET    | `/health`         | —                                                                  | Estado de la API y la base de datos (`200` / `503`) |
-| GET    | `/meta`           | —                                                                  | Valores permitidos con sus textos en español  |
-| GET    | `/exercises`      | `muscle`, `equipment`, `pattern`, `page` (1), `limit` (20, máx. 100) | Catálogo paginado, ordenado por nombre        |
-| GET    | `/exercises/:id`  | —                                                                  | Un ejercicio                                  |
-| GET    | `/activity-types` | —                                                                  | Tipos de actividad                            |
-| GET    | `/phrases`        | `context` (`general`, `streak`, `record`, `sessionCompleted`)      | Frases activas                                |
+| Método | Ruta                 | Parámetros / cuerpo                                                  | Descripción                                   |
+| ------ | -------------------- | -------------------------------------------------------------------- | --------------------------------------------- |
+| GET    | `/health`            | —                                                                    | Estado de la API y la base de datos (`200` / `503`) |
+| GET    | `/meta`              | —                                                                    | Valores permitidos con sus textos en español  |
+| POST   | `/auth/register`     | `name`, `email`, `password` (mín. 8), `timezone` (opcional)          | Crea la cuenta y sus 4 grupos iniciales, e inicia sesión (`201`) |
+| POST   | `/auth/login`        | `email`, `password`                                                  | Inicia sesión (pone la cookie)                |
+| POST   | `/auth/logout`       | —                                                                    | Cierra sesión (borra la cookie, `204`)        |
+| GET    | `/users/me` 🔒        | —                                                                    | Persona con sesión                            |
+| PATCH  | `/users/me` 🔒        | `name`, `preferences.{weightUnit, weekStartsOn, timezone, voicePhrases}` | Edita nombre y/o preferencias             |
+| PATCH  | `/users/me/password` 🔒 | `currentPassword`, `newPassword`                                  | Cambia la contraseña y cierra las otras sesiones |
+| GET    | `/exercises` 🔒       | `muscle`, `equipment`, `pattern`, `page` (1), `limit` (20, máx. 100) | Catálogo global + propio, paginado por nombre |
+| GET    | `/exercises/:id` 🔒   | —                                                                    | Un ejercicio                                  |
+| GET    | `/activity-types` 🔒  | —                                                                    | Tipos de actividad globales + propios         |
+| GET    | `/phrases` 🔒         | `context` (`general`, `streak`, `record`, `sessionCompleted`)        | Frases activas globales + propias             |
 
 ### Formato de las respuestas
 
@@ -155,8 +181,12 @@ Todas las rutas empiezan por `/api/v1`. Por ahora son de solo lectura y muestran
 | `VALIDATION_ERROR`     | 400  | Parámetros o datos que no cumplen el esquema  |
 | `INVALID_JSON`         | 400  | El cuerpo no es un JSON válido                |
 | `INVALID_VALUE`        | 400  | Un valor no se puede convertir (ej.: un id)   |
+| `UNAUTHENTICATED`      | 401  | No hay sesión, venció o ya no es válida       |
+| `INVALID_CREDENTIALS`  | 401  | Correo o contraseña incorrectos               |
 | `NOT_FOUND`            | 404  | La ruta o el recurso no existe                |
+| `CONFLICT`             | 409  | Ya existe (ej.: correo registrado)            |
 | `DUPLICATE`            | 409  | Se viola un índice único                      |
+| `TOO_MANY_ATTEMPTS`    | 429  | Demasiados intentos fallidos de contraseña    |
 | `PAYLOAD_TOO_LARGE`    | 413  | El cuerpo de la petición es demasiado grande  |
 | `DATABASE_UNAVAILABLE` | 503  | No hay conexión con MongoDB                   |
 | `INTERNAL_ERROR`       | 500  | Error inesperado (se registra en el servidor) |
