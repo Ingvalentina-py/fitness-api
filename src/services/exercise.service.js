@@ -3,12 +3,11 @@ import { SPANISH_COLLATION } from '../models/shared.js'
 import { AppError } from '../utils/AppError.js'
 import { getSkip } from '../utils/pagination.js'
 
-// Por ahora solo el catálogo global (owner: null).
-// Desde la Fase 2 también incluirá los ejercicios propios de cada persona.
-const globalCatalog = { owner: null, isArchived: false }
+// Ejercicios visibles para una persona: los globales (owner: null) y los suyos
+const visibleTo = (userId) => ({ owner: { $in: [null, userId] }, isArchived: false })
 
-export async function listExercises({ muscle, equipment, pattern, page, limit }) {
-  const filter = { ...globalCatalog }
+export async function listExercises(userId, { muscle, equipment, pattern, page, limit }) {
+  const filter = visibleTo(userId)
   if (muscle) filter.primaryMuscles = muscle
   if (equipment) filter.equipment = equipment
   if (pattern) filter.movementPattern = pattern
@@ -26,8 +25,8 @@ export async function listExercises({ muscle, equipment, pattern, page, limit })
   return { items, total }
 }
 
-export async function getExerciseById(id) {
-  const exercise = await Exercise.findOne({ _id: id, ...globalCatalog })
+export async function getExerciseById(userId, id) {
+  const exercise = await Exercise.findOne({ _id: id, ...visibleTo(userId) })
   if (!exercise) throw AppError.notFound('Ejercicio no encontrado')
   return exercise
 }
