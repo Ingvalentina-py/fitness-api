@@ -3,7 +3,6 @@ import {
   createSession,
   getLastPerformances,
   getSession,
-  listSessions,
   saveSessionAsRoutine,
 } from '../controllers/session.controller.js'
 import { validate } from '../middlewares/validate.js'
@@ -11,13 +10,11 @@ import { idParamsSchema } from '../validators/common.js'
 import {
   createSessionBodySchema,
   lastPerformancesQuerySchema,
-  listSessionsQuerySchema,
   saveAsRoutineBodySchema,
 } from '../validators/session.validators.js'
 
 const router = Router()
 
-router.get('/', validate({ query: listSessionsQuerySchema }), listSessions)
 router.post('/', validate({ body: createSessionBodySchema }), createSession)
 // Las rutas fijas van antes que las que tienen :id
 router.get('/previous', validate({ query: lastPerformancesQuerySchema }), getLastPerformances)

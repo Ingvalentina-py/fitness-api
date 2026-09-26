@@ -1,13 +1,4 @@
 import * as sessionService from '../services/session.service.js'
-import { toLocalDay } from '../utils/timezone.js'
-
-// GET /api/v1/sessions?day=2026-09-25
-export async function listSessions(req, res) {
-  const day = req.validated.query.day ?? toLocalDay(new Date(), req.user.preferences.timezone)
-  const sessions = await sessionService.listSessionsByDay(req.user._id, day)
-
-  res.json({ data: sessions, meta: { day } })
-}
 
 // GET /api/v1/sessions/previous?exerciseIds=id1,id2
 export async function getLastPerformances(req, res) {

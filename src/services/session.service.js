@@ -16,11 +16,6 @@ export async function getSessionById(userId, id) {
   return session
 }
 
-// Sesiones de un día concreto (lo usa la pantalla Hoy)
-export async function listSessionsByDay(userId, day) {
-  return GymSession.find({ user: userId, day }).sort({ date: -1 }).populate('routine', 'name goal')
-}
-
 // Lo que hiciste la última vez en cada ejercicio: la referencia que aparece al lado
 // de cada ejercicio durante la sesión.
 export async function getLastPerformances(userId, exerciseIds) {

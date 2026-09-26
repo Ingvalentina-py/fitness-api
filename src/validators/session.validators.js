@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ENERGY_LEVEL, WEIGHT_UNIT_VALUES } from '../constants/activities.js'
-import { localDaySchema, objectIdSchema } from './common.js'
+import { objectIdSchema } from './common.js'
 
 // Una serie: repeticiones y peso pueden ir vacíos mientras la sesión está en curso
 const setSchema = z.strictObject({
@@ -32,9 +32,6 @@ export const createSessionBodySchema = z.strictObject({
     .min(1, 'Agrega al menos un ejercicio')
     .max(30, 'Máximo 30 ejercicios por sesión'),
 })
-
-// GET /sessions?day=2026-09-25
-export const listSessionsQuerySchema = z.object({ day: localDaySchema.optional() })
 
 // GET /sessions/previous?exerciseIds=id1,id2 → la lista llega como texto separado por comas
 export const lastPerformancesQuerySchema = z.object({

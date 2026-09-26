@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { ensureDatabase } from '../middlewares/ensureDatabase.js'
 import { requireAuth } from '../middlewares/requireAuth.js'
+import activityRoutes from './activity.routes.js'
 import activityTypeRoutes from './activityType.routes.js'
 import authRoutes from './auth.routes.js'
 import exerciseRoutes from './exercise.routes.js'
@@ -30,6 +31,7 @@ const privateRoute = [ensureDatabase, requireAuth]
 router.use('/users', ...privateRoute, userRoutes)
 router.use('/exercises', ...privateRoute, exerciseRoutes)
 router.use('/activity-types', ...privateRoute, activityTypeRoutes)
+router.use('/activities', ...privateRoute, activityRoutes)
 router.use('/phrases', ...privateRoute, phraseRoutes)
 router.use('/routine-groups', ...privateRoute, routineGroupRoutes)
 router.use('/routines', ...privateRoute, routineRoutes)

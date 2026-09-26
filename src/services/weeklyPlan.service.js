@@ -52,6 +52,14 @@ export async function removeRoutineFromPlan(userId, routineId) {
   )
 }
 
+// Un tipo de actividad archivado sale del plan semanal
+export async function removeActivityTypeFromPlan(userId, activityTypeId) {
+  await WeeklyPlan.updateOne(
+    { user: userId },
+    { $pull: { 'days.$[].items': { kind: 'activityType', activityType: activityTypeId } } },
+  )
+}
+
 // Rutina de "pierna intensa": al menos la mitad de sus ejercicios trabajan
 // principalmente el tren inferior
 function isLegIntenseRoutine(routine) {
