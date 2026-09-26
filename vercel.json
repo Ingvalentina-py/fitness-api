@@ -1,7 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "//": "Toda la API es una sola función: cualquier ruta entra por api/index.js y Express se encarga del resto.",
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
-  "//regions": "iad1 = Washington D. C., que es donde está AWS us-east-1 (la región por defecto de Atlas). Si tu clúster está en otra, cámbiala: las funciones deben correr cerca de la base de datos.",
   "regions": ["iad1"]
 }

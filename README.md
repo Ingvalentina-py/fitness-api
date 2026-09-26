@@ -91,6 +91,11 @@ Solo hace falta en local. En Vercel no se configura.
 
 La API corre como **una sola función serverless**: `api/index.js` exporta la misma app de Express que usas en local, y `vercel.json` manda todas las rutas ahí.
 
+`vercel.json` no admite comentarios (Vercel rechaza cualquier propiedad que no esté en su esquema), así que lo que hace cada línea queda explicado aquí:
+
+- `rewrites`: cualquier ruta entra por `api/index.js`; de ahí en adelante enruta Express.
+- `regions`: dónde corren las funciones (ver el punto 4).
+
 1. **Vercel → Add New → Project** e importa el repositorio `fitness-api`.
    - Framework Preset: **Other**. No hace falta comando de compilación: son funciones.
 2. **Settings → Environment Variables** (marca *Production* y *Preview*):
