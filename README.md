@@ -158,6 +158,12 @@ Decisiones importantes:
 - **Récords siempre coherentes.** Editar o borrar una sesión puede dejar un récord apuntando a algo que ya no existe, así que `recomputeForExercises` los recalcula desde cero mirando todas las sesiones donde aparecen esos ejercicios. Si un ejercicio se queda sin series válidas, su récord se borra.
 - **Borrar es borrar.** A diferencia de rutinas y ejercicios (que se archivan), un registro del día sí se elimina: es un hecho que no ocurrió como se anotó.
 
+## Frases motivacionales
+
+- **Del sistema y tuyas, mezcladas.** Las 35 frases que trae la app (`scripts/data/phrases.js`) son de todos y no se editan; cada persona crea las suyas, las edita, las apaga (`isActive`) o las borra. Las apagadas solo salen con `includeInactive=true`, que es lo que pide la pantalla donde se gestionan.
+- **Cuatro momentos** (`context`): `general` (rotando en Hoy), `streak` (cuando llevas días seguidos), `record` (al superar una marca) y `sessionCompleted` (al terminar de entrenar). El frontend pide las del momento que toca y elige una.
+- **Sin repetidas.** Un índice único por (dueño, texto) evita que la misma frase entre dos veces.
+
 ## Progreso y récords
 
 - **La racha mira todo el historial, no el filtro.** "Días seguidos" es cuántos llevas hasta hoy, no cuántos van dentro de unas fechas. Se calcula sobre los días distintos con algo registrado (`Activity.distinct('day')`), y cuenta hasta ayer si hoy todavía no hay nada: el día sigue abierto y no tendría sentido romperla a las 9 de la mañana.
@@ -235,7 +241,10 @@ Todas las rutas empiezan por `/api/v1`. 🔒 = requiere sesión.
 | GET    | `/stats/exercises` 🔒 | —                                                                    | Ejercicios de los que hay historial                   |
 | GET    | `/stats/exercises/:id` 🔒 | `from`, `to`                                                     | Peso máximo y volumen de ese ejercicio, día por día   |
 | GET    | `/records` 🔒         | —                                                                    | Tus mejores marcas por ejercicio                      |
-| GET    | `/phrases` 🔒         | `context` (`general`, `streak`, `record`, `sessionCompleted`)        | Frases activas globales + propias             |
+| GET    | `/phrases` 🔒         | `context`, `scope` (`all`/`mine`), `includeInactive`                 | Frases del sistema + propias (las apagadas solo si se piden) |
+| POST   | `/phrases` 🔒         | `text` (máx. 140), `context`, `isActive`                             | Crea una frase propia (`201`)                 |
+| PATCH  | `/phrases/:id` 🔒     | Los mismos campos                                                    | Edita, activa o desactiva una frase propia    |
+| DELETE | `/phrases/:id` 🔒     | —                                                                    | Borra una frase propia (`204`)                |
 
 ### Formato de las respuestas
 
