@@ -8,3 +8,14 @@ export function isValidTimeZone(timeZone) {
     return false
   }
 }
+
+// Día local de una fecha en formato AAAA-MM-DD (ver activity.model.js).
+// "en-CA" es el idioma cuyo formato corto de fecha ya es AAAA-MM-DD.
+export function toLocalDay(date, timeZone) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date)
+}

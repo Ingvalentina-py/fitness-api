@@ -141,6 +141,16 @@ Decisiones importantes:
 - **División sugerida.** Cada cuenta nueva recibe 4 rutinas de ejemplo (Inferior A – Fuerza, Superior A – Fuerza, Inferior B – Hipertrofia, Superior B – Hipertrofia) y un plan semanal. Quien aún no tenga rutinas puede cargarla con `POST /routines/suggested-split`. Las plantillas están en `src/constants/suggestedSplit.js`.
 - **Aviso de piernas.** `GET /weekly-plan` devuelve `warnings` cuando un día tiene una rutina de "pierna intensa" (al menos la mitad de sus ejercicios trabajan el tren inferior) justo después de un día con otra actividad exigente para las piernas: una rutina intensa o un tipo de actividad con `isLegIntensive` (por defecto, Bicicleta).
 
+## Sesiones de gimnasio
+
+- **La sesión en curso vive en el navegador.** Mientras entrenas, el borrador se guarda en el celular y solo se envía a la API al terminar (`POST /sessions`). Así funciona aunque el gimnasio no tenga señal y el historial nunca queda con sesiones a medias.
+- **El volumen lo calcula el modelo.** `volumeKg` por ejercicio y `totalVolumeKg` de la sesión se recalculan en cada guardado, igual que `weightKg`. Solo cuentan las series marcadas como completadas: la casilla es la que dice "esto lo hice".
+- **Unilateral × 2.** Los ejercicios unilaterales se registran por lado (como en el Excel: "10 (unilateral) / 12,5") y su volumen se multiplica por dos, porque el trabajo se hizo con los dos lados. `isUnilateral` viene del catálogo, pero se puede cambiar solo para esa sesión.
+- **El día local lo calcula el servidor** con la zona horaria de la persona: una sesión de las 9 p. m. en Bogotá se guarda en el día que vivió, no en el día UTC.
+- **Referencia de la vez anterior.** `GET /sessions/previous` devuelve, por ejercicio, las series completadas de la última sesión en que apareció (una agregación que ordena por fecha y toma la primera de cada ejercicio).
+- **Récords.** Al guardar una sesión se actualizan `personalRecords` (peso máximo y mejor volumen) y la respuesta trae en `meta.records` solo los que **superan** una marca anterior: la primera vez que haces un ejercicio se guarda la marca en silencio, porque no hay nada que celebrar todavía.
+- **De sesión a rutina.** `POST /sessions/:id/routine` guarda lo que hiciste como rutina nueva (`mode: "create"`) o actualiza la rutina de origen (`mode: "update"`). Las series y el rango de repeticiones objetivo salen de lo que realmente hiciste.
+
 ## Autenticación
 
 - **Sesión en una cookie `httpOnly`** (`fitness_session`) con un JWT firmado que dura **30 días**. El JavaScript del navegador no puede leerla, así que un script malicioso no puede robarla. `SameSite=Lax` evita que otros sitios la usen (CSRF) y en producción solo viaja por HTTPS.
@@ -185,6 +195,11 @@ Todas las rutas empiezan por `/api/v1`. 🔒 = requiere sesión.
 | POST   | `/routines/suggested-split` 🔒 | —                                                           | Carga la división sugerida si no hay rutinas (`201`; si no, `409`) |
 | GET    | `/weekly-plan` 🔒     | —                                                                    | 7 días con lo planeado y los avisos de piernas |
 | PUT    | `/weekly-plan` 🔒     | `days[]` (`dayOfWeek`, `items[]` con `kind` `routine` o `activityType`) | Reemplaza el plan semanal                   |
+| GET    | `/sessions` 🔒        | `day` (`AAAA-MM-DD`; por defecto hoy en tu zona horaria)             | Sesiones de gimnasio de ese día               |
+| GET    | `/sessions/previous` 🔒 | `exerciseIds` (ids separados por comas)                           | Última vez que hiciste cada ejercicio         |
+| GET    | `/sessions/:id` 🔒    | —                                                                    | Una sesión con sus ejercicios y series        |
+| POST   | `/sessions` 🔒        | `routine`, `date`, `durationMinutes`, `energy` (1-5), `notes`, `exercises[]` (`exercise`, `isUnilateral`, `restSeconds`, `notes`, `sets[]` con `reps`, `weight`, `unit`, `completed`) | Guarda la sesión terminada; devuelve los récords superados en `meta.records` (`201`) |
+| POST   | `/sessions/:id/routine` 🔒 | `mode: "create"` + `name` + `group`, o `mode: "update"`         | Guarda la sesión como rutina nueva o actualiza la de origen (`201`) |
 | GET    | `/activity-types` 🔒  | —                                                                    | Tipos de actividad globales + propios         |
 | GET    | `/phrases` 🔒         | `context` (`general`, `streak`, `record`, `sessionCompleted`)        | Frases activas globales + propias             |
 

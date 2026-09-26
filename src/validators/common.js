@@ -14,6 +14,9 @@ export const uniqueObjectIdsSchema = z
   .max(100)
   .refine((ids) => new Set(ids).size === ids.length, 'La lista tiene ids repetidos')
 
+// Día local en formato AAAA-MM-DD (ver activity.model.js)
+export const localDaySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida (AAAA-MM-DD)')
+
 export const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido (formato #RRGGBB)')
 
 // Nombre de ícono, ej. "heart-pulse". El frontend lo traduce a un dibujo.

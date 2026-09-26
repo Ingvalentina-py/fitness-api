@@ -9,6 +9,7 @@ import metaRoutes from './meta.routes.js'
 import phraseRoutes from './phrase.routes.js'
 import routineRoutes from './routine.routes.js'
 import routineGroupRoutes from './routineGroup.routes.js'
+import sessionRoutes from './session.routes.js'
 import userRoutes from './user.routes.js'
 import weeklyPlanRoutes from './weeklyPlan.routes.js'
 
@@ -33,5 +34,6 @@ router.use('/phrases', ...privateRoute, phraseRoutes)
 router.use('/routine-groups', ...privateRoute, routineGroupRoutes)
 router.use('/routines', ...privateRoute, routineRoutes)
 router.use('/weekly-plan', ...privateRoute, weeklyPlanRoutes)
+router.use('/sessions', ...privateRoute, sessionRoutes)
 
 export default router
