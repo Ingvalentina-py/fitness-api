@@ -84,6 +84,39 @@ export async function createSession(user, data) {
   return { session: await getSessionById(userId, session._id), records }
 }
 
+// Corregir una sesión ya guardada: cambia sus datos y sus series, y vuelve a
+// calcular los récords de los ejercicios que toca (los que quita y los que pone).
+export async function updateSession(user, id, data) {
+  const userId = user._id
+  const session = await GymSession.findOne({ _id: id, user: userId })
+  if (!session) throw AppError.notFound('Sesión no encontrada')
+
+  const previousExerciseIds = session.exercises.map((exercise) => exercise.exercise)
+  const exercises = await buildPerformedExercises(userId, data.exercises)
+
+  if (countCompletedSets(exercises) === 0) {
+    throw AppError.validation([
+      { field: 'body.exercises', message: 'Marca al menos una serie como completada' },
+    ])
+  }
+
+  const date = data.date ?? session.date
+  session.date = date
+  session.day = toLocalDay(date, user.preferences.timezone)
+  session.durationMinutes = data.durationMinutes
+  session.energy = data.energy
+  session.notes = data.notes
+  session.exercises = exercises
+  await session.save()
+
+  await personalRecordService.recomputeForExercises(userId, [
+    ...previousExerciseIds,
+    ...exercises.map((exercise) => exercise.exercise),
+  ])
+
+  return getSessionById(userId, id)
+}
+
 // Guarda lo que hiciste como rutina nueva, o actualiza la rutina de la que saliste
 export async function saveSessionAsRoutine(userId, sessionId, { mode, name, group }) {
   const session = await getSessionById(userId, sessionId)

@@ -4,6 +4,7 @@ import {
   getLastPerformances,
   getSession,
   saveSessionAsRoutine,
+  updateSession,
 } from '../controllers/session.controller.js'
 import { validate } from '../middlewares/validate.js'
 import { idParamsSchema } from '../validators/common.js'
@@ -19,6 +20,11 @@ router.post('/', validate({ body: createSessionBodySchema }), createSession)
 // Las rutas fijas van antes que las que tienen :id
 router.get('/previous', validate({ query: lastPerformancesQuerySchema }), getLastPerformances)
 router.get('/:id', validate({ params: idParamsSchema }), getSession)
+router.patch(
+  '/:id',
+  validate({ params: idParamsSchema, body: createSessionBodySchema }),
+  updateSession,
+)
 router.post(
   '/:id/routine',
   validate({ params: idParamsSchema, body: saveAsRoutineBodySchema }),

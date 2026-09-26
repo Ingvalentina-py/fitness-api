@@ -151,6 +151,13 @@ Decisiones importantes:
 - **Récords.** Al guardar una sesión se actualizan `personalRecords` (peso máximo y mejor volumen) y la respuesta trae en `meta.records` solo los que **superan** una marca anterior: la primera vez que haces un ejercicio se guarda la marca en silencio, porque no hay nada que celebrar todavía.
 - **De sesión a rutina.** `POST /sessions/:id/routine` guarda lo que hiciste como rutina nueva (`mode: "create"`) o actualiza la rutina de origen (`mode: "update"`). Las series y el rango de repeticiones objetivo salen de lo que realmente hiciste.
 
+## Historial
+
+- **Un rango, una consulta.** `GET /activities?from=&to=` devuelve el mes completo sin los ejercicios de cada sesión (`select('-exercises')`): el calendario solo necesita saber qué hubo cada día.
+- **Corregir lo registrado.** Las actividades se editan con `PATCH /activities/:id` y las sesiones con `PATCH /sessions/:id`, que acepta los mismos campos que al crearlas (series incluidas) y vuelve a calcular el día local, el volumen y los récords.
+- **Récords siempre coherentes.** Editar o borrar una sesión puede dejar un récord apuntando a algo que ya no existe, así que `recomputeForExercises` los recalcula desde cero mirando todas las sesiones donde aparecen esos ejercicios. Si un ejercicio se queda sin series válidas, su récord se borra.
+- **Borrar es borrar.** A diferencia de rutinas y ejercicios (que se archivan), un registro del día sí se elimina: es un hecho que no ocurrió como se anotó.
+
 ## Otras actividades
 
 - **Una sola colección.** Las sesiones de gimnasio y las demás actividades viven juntas en `activities` (discriminators de Mongoose), así que `GET /activities?day=` devuelve el día completo en una consulta: un día puede tener gimnasio y baile, como en el Excel.
@@ -204,15 +211,18 @@ Todas las rutas empiezan por `/api/v1`. 🔒 = requiere sesión.
 | PUT    | `/weekly-plan` 🔒     | `days[]` (`dayOfWeek`, `items[]` con `kind` `routine` o `activityType`) | Reemplaza el plan semanal                   |
 | GET    | `/sessions/previous` 🔒 | `exerciseIds` (ids separados por comas)                           | Última vez que hiciste cada ejercicio         |
 | GET    | `/sessions/:id` 🔒    | —                                                                    | Una sesión con sus ejercicios y series        |
+| PATCH  | `/sessions/:id` 🔒    | Los mismos campos que `POST /sessions`                               | Corrige una sesión ya guardada (series incluidas) y recalcula sus récords |
 | POST   | `/sessions` 🔒        | `routine`, `date`, `durationMinutes`, `energy` (1-5), `notes`, `exercises[]` (`exercise`, `isUnilateral`, `restSeconds`, `notes`, `sets[]` con `reps`, `weight`, `unit`, `completed`) | Guarda la sesión terminada; devuelve los récords superados en `meta.records` (`201`) |
 | POST   | `/sessions/:id/routine` 🔒 | `mode: "create"` + `name` + `group`, o `mode: "update"`         | Guarda la sesión como rutina nueva o actualiza la de origen (`201`) |
 | GET    | `/activity-types` 🔒  | —                                                                    | Tipos de actividad globales + propios         |
 | POST   | `/activity-types` 🔒  | `name`, `color` (`#RRGGBB`), `icon`, `usesDistance`, `isLegIntensive` | Crea un tipo propio (`201`)                  |
 | PATCH  | `/activity-types/:id` 🔒 | Cualquiera de los campos anteriores                               | Edita un tipo propio (los del sistema: `403`) |
 | DELETE | `/activity-types/:id` 🔒 | —                                                                 | Archiva un tipo propio y lo saca del plan semanal (`204`) |
-| GET    | `/activities` 🔒      | `day` (`AAAA-MM-DD`; por defecto hoy en tu zona horaria)             | Todo lo registrado ese día: gimnasio y otras actividades |
+| GET    | `/activities` 🔒      | `day` (por defecto hoy en tu zona horaria) o `from` + `to`            | Todo lo registrado ese día, o un rango de días para el calendario (sin los ejercicios de cada sesión) |
 | GET    | `/activities/:id` 🔒  | —                                                                    | Una actividad                                 |
 | POST   | `/activities` 🔒      | `activityType`, `date`, `durationMinutes`, `intensity`, `distanceKm`, `notes` | Registra una actividad distinta al gimnasio (`201`) |
+| PATCH  | `/activities/:id` 🔒  | Los mismos campos                                                    | Corrige una actividad distinta al gimnasio            |
+| DELETE | `/activities/:id` 🔒  | —                                                                    | Borra cualquier registro, sesión incluida (`204`)     |
 | GET    | `/phrases` 🔒         | `context` (`general`, `streak`, `record`, `sessionCompleted`)        | Frases activas globales + propias             |
 
 ### Formato de las respuestas

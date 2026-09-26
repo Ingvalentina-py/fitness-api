@@ -24,6 +24,17 @@ export async function createSession(req, res) {
   res.status(201).json({ data: session, meta: { records } })
 }
 
+// PATCH /api/v1/sessions/:id → corrige una sesión ya guardada
+export async function updateSession(req, res) {
+  const session = await sessionService.updateSession(
+    req.user,
+    req.validated.params.id,
+    req.validated.body,
+  )
+
+  res.json({ data: session })
+}
+
 // POST /api/v1/sessions/:id/routine
 export async function saveSessionAsRoutine(req, res) {
   const routine = await sessionService.saveSessionAsRoutine(
