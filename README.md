@@ -87,6 +87,42 @@ DNS_SERVERS=8.8.8.8,1.1.1.1
 
 Solo hace falta en local. En Vercel no se configura.
 
+## Despliegue en Vercel
+
+La API corre como **una sola función serverless**: `api/index.js` exporta la misma app de Express que usas en local, y `vercel.json` manda todas las rutas ahí.
+
+1. **Vercel → Add New → Project** e importa el repositorio `fitness-api`.
+   - Framework Preset: **Other**. No hace falta comando de compilación: son funciones.
+2. **Settings → Environment Variables** (marca *Production* y *Preview*):
+
+   | Variable | Valor |
+   | --- | --- |
+   | `MONGODB_URI` | La misma cadena de Atlas que usas en local |
+   | `MONGODB_DB_NAME` | `fitness` |
+   | `JWT_SECRET` | **Una nueva, distinta a la de tu computador** |
+
+   Genera el secreto de producción con este comando y pégalo directamente en Vercel (no lo guardes en ningún archivo):
+
+   ```bash
+   node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
+   ```
+
+   `NODE_ENV` no hay que configurarla: Vercel ya la pone en `production`.
+   `DNS_SERVERS` tampoco: el fallo de DNS solo pasa en algunos Windows.
+   `CORS_ORIGIN` solo si alguna vez llamas a la API desde otro dominio (el frontend no lo necesita, ver abajo).
+
+3. **MongoDB Atlas → Network Access**: agrega `0.0.0.0/0` (*Allow access from anywhere*). Las funciones de Vercel no tienen una IP fija, así que no hay una lista que autorizar. La base sigue protegida por usuario y contraseña; si algún día quieres cerrarlo más, Atlas ofrece *Private Endpoint* en los planes de pago.
+
+4. **Región.** `vercel.json` fija `iad1` (Washington D. C.), que es donde está AWS `us-east-1`, la región por defecto de los clústeres gratuitos de Atlas. Si el tuyo está en otra (lo ves en Atlas → Database, junto al nombre del clúster), cambia esa línea: si la función y la base están lejos, cada consulta paga el viaje.
+
+5. **Comprueba** que responde: `https://TU-API.vercel.app/api/v1/health` debe devolver `{"status":"ok","database":"connected"}`.
+
+6. Copia ese dominio: lo necesita `fitness-web` para su rewrite.
+
+### Por qué la cookie sigue funcionando
+
+El navegador nunca llama a este dominio directamente: llama a `/api/...` en el dominio del frontend y Vercel lo reenvía aquí. Para el navegador todo viene del mismo sitio, así que la cookie de sesión (`httpOnly`, `SameSite=Lax`) funciona igual que en local, sin CORS y sin cookies de terceros (que Safari bloquea).
+
 ## Estructura
 
 ```

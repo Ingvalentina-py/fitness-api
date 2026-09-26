@@ -11,6 +11,10 @@ import apiV1Router from './routes/index.js'
 // Así la misma app sirve para el servidor local (server.js) y para Vercel.
 const app = express()
 
+// Detrás del proxy de Vercel: así req.protocol y req.ip reflejan la petición real
+// y no la del proxy. En local no cambia nada.
+app.set('trust proxy', 1)
+
 app.use(helmet()) // cabeceras HTTP de seguridad
 app.use(cors({ origin: env.CORS_ORIGIN })) // solo el frontend autorizado puede llamar a la API
 app.use(express.json()) // convierte el cuerpo JSON de las peticiones en req.body

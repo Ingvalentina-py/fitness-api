@@ -36,7 +36,14 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:5173').transform(toList),
 })
 
-const result = envSchema.safeParse(process.env)
+// En Vercel, NODE_ENV llega como "production" solo, pero si alguna vez faltara la
+// cookie de sesión dejaría de exigir HTTPS: la variable VERCEL sirve de seguro.
+const source = {
+  ...process.env,
+  NODE_ENV: process.env.NODE_ENV ?? (process.env.VERCEL ? 'production' : undefined),
+}
+
+const result = envSchema.safeParse(source)
 
 if (!result.success) {
   throw new Error(`Variables de entorno inválidas:\n${z.prettifyError(result.error)}`)
