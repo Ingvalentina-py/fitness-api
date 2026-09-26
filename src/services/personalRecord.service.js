@@ -58,6 +58,19 @@ export async function applySession(userId, session) {
   return achievements
 }
 
+// Tus récords con el nombre del ejercicio, del más reciente al más antiguo
+export async function listRecords(userId) {
+  const records = await PersonalRecord.find({ user: userId }).populate('exercise', 'name isArchived')
+
+  return records
+    .filter((record) => record.maxWeight || record.bestVolume)
+    .sort((a, b) => achievedAt(b) - achievedAt(a))
+}
+
+function achievedAt(record) {
+  return Math.max(record.maxWeight?.achievedAt ?? 0, record.bestVolume?.achievedAt ?? 0)
+}
+
 // Vuelve a calcular desde cero los récords de unos ejercicios, mirando todas las
 // sesiones donde aparecen. Hace falta al editar o borrar una sesión: si la sesión
 // que tenía el récord cambió, el récord no puede seguir apuntando a ella.

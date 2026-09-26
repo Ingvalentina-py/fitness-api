@@ -158,6 +158,13 @@ Decisiones importantes:
 - **Récords siempre coherentes.** Editar o borrar una sesión puede dejar un récord apuntando a algo que ya no existe, así que `recomputeForExercises` los recalcula desde cero mirando todas las sesiones donde aparecen esos ejercicios. Si un ejercicio se queda sin series válidas, su récord se borra.
 - **Borrar es borrar.** A diferencia de rutinas y ejercicios (que se archivan), un registro del día sí se elimina: es un hecho que no ocurrió como se anotó.
 
+## Progreso y récords
+
+- **La racha mira todo el historial, no el filtro.** "Días seguidos" es cuántos llevas hasta hoy, no cuántos van dentro de unas fechas. Se calcula sobre los días distintos con algo registrado (`Activity.distinct('day')`), y cuenta hasta ayer si hoy todavía no hay nada: el día sigue abierto y no tendría sentido romperla a las 9 de la mañana.
+- **Distribución.** Los minutos se agrupan por tipo de actividad (todas las sesiones de gimnasio juntas) y las series completadas se cuentan por músculo principal: una serie suma para cada músculo principal del ejercicio, que es la medida habitual de volumen por grupo muscular.
+- **Progreso por ejercicio.** Una agregación devuelve, por día, el peso más alto de una serie completada y el volumen. Si un día tuvo dos sesiones, el volumen se suma y el peso máximo es el mayor de las dos.
+- **Rango por defecto: 90 días**, resuelto siempre con la zona horaria de la persona. Los récords no llevan filtro: una marca es una marca aunque sea de hace meses.
+
 ## Otras actividades
 
 - **Una sola colección.** Las sesiones de gimnasio y las demás actividades viven juntas en `activities` (discriminators de Mongoose), así que `GET /activities?day=` devuelve el día completo en una consulta: un día puede tener gimnasio y baile, como en el Excel.
@@ -223,6 +230,11 @@ Todas las rutas empiezan por `/api/v1`. 🔒 = requiere sesión.
 | POST   | `/activities` 🔒      | `activityType`, `date`, `durationMinutes`, `intensity`, `distanceKm`, `notes` | Registra una actividad distinta al gimnasio (`201`) |
 | PATCH  | `/activities/:id` 🔒  | Los mismos campos                                                    | Corrige una actividad distinta al gimnasio            |
 | DELETE | `/activities/:id` 🔒  | —                                                                    | Borra cualquier registro, sesión incluida (`204`)     |
+| GET    | `/stats/summary` 🔒   | `from`, `to` (por defecto, los últimos 90 días)                      | Días activos del rango, totales y rachas (las rachas miran todo el historial) |
+| GET    | `/stats/distribution` 🔒 | `from`, `to`                                                      | Minutos por tipo de actividad y series por músculo    |
+| GET    | `/stats/exercises` 🔒 | —                                                                    | Ejercicios de los que hay historial                   |
+| GET    | `/stats/exercises/:id` 🔒 | `from`, `to`                                                     | Peso máximo y volumen de ese ejercicio, día por día   |
+| GET    | `/records` 🔒         | —                                                                    | Tus mejores marcas por ejercicio                      |
 | GET    | `/phrases` 🔒         | `context` (`general`, `streak`, `record`, `sessionCompleted`)        | Frases activas globales + propias             |
 
 ### Formato de las respuestas

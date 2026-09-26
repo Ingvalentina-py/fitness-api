@@ -8,9 +8,11 @@ import exerciseRoutes from './exercise.routes.js'
 import healthRoutes from './health.routes.js'
 import metaRoutes from './meta.routes.js'
 import phraseRoutes from './phrase.routes.js'
+import recordRoutes from './record.routes.js'
 import routineRoutes from './routine.routes.js'
 import routineGroupRoutes from './routineGroup.routes.js'
 import sessionRoutes from './session.routes.js'
+import statsRoutes from './stats.routes.js'
 import userRoutes from './user.routes.js'
 import weeklyPlanRoutes from './weeklyPlan.routes.js'
 
@@ -32,6 +34,8 @@ router.use('/users', ...privateRoute, userRoutes)
 router.use('/exercises', ...privateRoute, exerciseRoutes)
 router.use('/activity-types', ...privateRoute, activityTypeRoutes)
 router.use('/activities', ...privateRoute, activityRoutes)
+router.use('/stats', ...privateRoute, statsRoutes)
+router.use('/records', ...privateRoute, recordRoutes)
 router.use('/phrases', ...privateRoute, phraseRoutes)
 router.use('/routine-groups', ...privateRoute, routineGroupRoutes)
 router.use('/routines', ...privateRoute, routineRoutes)
