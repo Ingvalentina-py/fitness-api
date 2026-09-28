@@ -9,4 +9,18 @@ export const WEEK_START_DAYS = [
   { value: 0, label: 'Domingo' },
 ]
 
+// Temas de color de la interfaz. El valor no cambia nunca (se guarda en la base);
+// el texto es lo que se ve. Los colores de cada uno viven en el frontend
+// (src/styles/themes.css): aquí solo está la lista válida.
+export const USER_THEMES = [
+  { value: 'pulse', label: 'Pulso' },
+  { value: 'violet', label: 'Violeta' },
+  { value: 'ocean', label: 'Océano' },
+  { value: 'forest', label: 'Bosque' },
+  { value: 'sunset', label: 'Atardecer' },
+  { value: 'graphite', label: 'Grafito' },
+]
+
+export const USER_THEME_VALUES = USER_THEMES.map((theme) => theme.value)
+
 export const WEEK_START_DAY_VALUES = WEEK_START_DAYS.map((day) => day.value)

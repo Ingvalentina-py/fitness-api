@@ -1,6 +1,11 @@
 import mongoose from 'mongoose'
 import { WEIGHT_UNIT_VALUES } from '../constants/activities.js'
-import { USER_PLANS, USER_ROLES, WEEK_START_DAY_VALUES } from '../constants/users.js'
+import {
+  USER_PLANS,
+  USER_ROLES,
+  USER_THEME_VALUES,
+  WEEK_START_DAY_VALUES,
+} from '../constants/users.js'
 import { isValidTimeZone } from '../utils/timezone.js'
 import { baseSchemaOptions } from './shared.js'
 
@@ -14,6 +19,8 @@ const preferencesSchema = new mongoose.Schema(
       validate: { validator: isValidTimeZone, message: 'Zona horaria inválida' },
     },
     voicePhrases: { type: Boolean, default: false },
+    // Tema de color de la interfaz (los colores están en el frontend)
+    theme: { type: String, enum: USER_THEME_VALUES, default: 'pulse' },
   },
   { _id: false },
 )

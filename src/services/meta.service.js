@@ -4,7 +4,7 @@ import { EQUIPMENT, MOVEMENT_PATTERNS } from '../constants/exercises.js'
 import { MUSCLES, MUSCLE_REGIONS } from '../constants/muscles.js'
 import { PHRASE_CONTEXTS } from '../constants/phrases.js'
 import { ROUTINE_GOALS } from '../constants/routines.js'
-import { WEEK_START_DAYS } from '../constants/users.js'
+import { USER_THEMES, WEEK_START_DAYS } from '../constants/users.js'
 
 // Opciones válidas con sus textos en español. El frontend las usa para armar
 // filtros y formularios sin duplicar listas: la API es la única fuente de verdad.
@@ -20,6 +20,7 @@ export function getMeta() {
     weightUnits: WEIGHT_UNITS,
     phraseContexts: PHRASE_CONTEXTS,
     weekStartDays: WEEK_START_DAYS,
+    themes: USER_THEMES,
     daysOfWeek: DAYS_OF_WEEK,
   }
 }

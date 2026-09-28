@@ -167,6 +167,7 @@ Cada petición recorre las capas **rutas → controladores → servicios → mod
 
 Decisiones importantes:
 
+- **El tema es una preferencia, no un dato visual.** `preferences.theme` solo guarda cuál eligió la persona (`pulse`, `violet`, `ocean`, `forest`, `sunset`, `graphite`) para que la acompañe entre dispositivos; los colores de cada tema viven en el frontend (`src/styles/themes.css`). `GET /meta` devuelve la lista con sus nombres.
 - **Valores en inglés, textos en español.** En la base se guarda `gluteMed`; la interfaz muestra "Glúteo medio". Los textos salen de `GET /api/v1/meta`, así el frontend no duplica listas.
 - **`activities` guarda `date` y `day`.** `date` es el instante exacto (UTC) y `day` es el día local de la persona (`"2026-09-16"`). Así el calendario y las rachas no se corren de día por la zona horaria.
 - **Copias en las sesiones.** Cada ejercicio realizado guarda una copia de su nombre y músculos: editar el catálogo no cambia el historial.
@@ -242,7 +243,7 @@ Todas las rutas empiezan por `/api/v1`. 🔒 = requiere sesión.
 | POST   | `/auth/login`        | `email`, `password`                                                  | Inicia sesión (pone la cookie)                |
 | POST   | `/auth/logout`       | —                                                                    | Cierra sesión (borra la cookie, `204`)        |
 | GET    | `/users/me` 🔒        | —                                                                    | Persona con sesión                            |
-| PATCH  | `/users/me` 🔒        | `name`, `preferences.{weightUnit, weekStartsOn, timezone, voicePhrases}` | Edita nombre y/o preferencias             |
+| PATCH  | `/users/me` 🔒        | `name`, `preferences.{weightUnit, weekStartsOn, timezone, voicePhrases, theme}` | Edita nombre y/o preferencias       |
 | PATCH  | `/users/me/password` 🔒 | `currentPassword`, `newPassword`                                  | Cambia la contraseña y cierra las otras sesiones |
 | GET    | `/exercises` 🔒       | `search`, `scope` (`all`/`mine`), `muscle`, `equipment`, `pattern`, `page`, `limit` | Catálogo global + propio, paginado por nombre |
 | GET    | `/exercises/:id` 🔒   | —                                                                    | Un ejercicio                                  |

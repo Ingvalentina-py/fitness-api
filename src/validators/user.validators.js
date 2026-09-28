@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { WEIGHT_UNIT_VALUES } from '../constants/activities.js'
-import { WEEK_START_DAY_VALUES } from '../constants/users.js'
+import { USER_THEME_VALUES, WEEK_START_DAY_VALUES } from '../constants/users.js'
 import { currentPasswordSchema, nameSchema, newPasswordSchema } from './auth.validators.js'
 import { timezoneSchema } from './common.js'
 
@@ -17,6 +17,7 @@ export const updateMeBodySchema = z
         weekStartsOn: z.literal(WEEK_START_DAY_VALUES).optional(),
         timezone: timezoneSchema.optional(),
         voicePhrases: z.boolean().optional(),
+        theme: z.enum(USER_THEME_VALUES).optional(),
       })
       .optional(),
   })
